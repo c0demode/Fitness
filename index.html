@@ -221,6 +221,79 @@
     font-size: 13px;
   }
 
+  .workout-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+  .workout-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  #workoutLetter { color: var(--iron-red); }
+  .workout-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+    gap: 10px;
+  }
+  .workout-item:last-child { border-bottom: none; }
+  .workout-item-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .workout-item-name {
+    font-family: 'Oswald', sans-serif;
+    font-size: 14px;
+    letter-spacing: 0.02em;
+  }
+  .workout-item-target { font-size: 10px; color: var(--chalk-dim); }
+  .workout-item-last { font-size: 10px; color: var(--plate-blue); }
+  .workout-item-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .workout-item-status {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: var(--chalk-dim);
+    flex-shrink: 0;
+  }
+  .workout-item-status.done {
+    background: var(--ok-green);
+    border-color: var(--ok-green);
+    color: #fff;
+    font-size: 13px;
+  }
+  .workout-log-btn {
+    background: none;
+    border: 1px solid var(--iron-red);
+    color: var(--iron-red);
+    font-family: 'Oswald', sans-serif;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 6px 10px;
+    cursor: pointer;
+  }
+  .workout-log-btn:active { background: var(--iron-red); color: #fff; }
+
+  .coaching-note {
+    font-size: 11px;
+    color: var(--chalk-dim);
+    font-style: italic;
+    line-height: 1.5;
+    margin: -4px 0 14px;
+    padding-left: 2px;
+    border-left: 2px solid var(--line);
+    padding-left: 8px;
+  }
+
   .bar-controls {
     display: flex;
     justify-content: space-between;
@@ -243,6 +316,36 @@
     color: var(--chalk-dim);
     text-align: center;
     margin-top: 2px;
+  }
+
+  .failure-toggle {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    color: var(--chalk-dim);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 10px;
+    cursor: pointer;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .failure-icon { filter: grayscale(1); opacity: 0.5; font-size: 13px; }
+  .failure-toggle.active {
+    border-color: var(--iron-red);
+    color: var(--iron-red);
+    background: rgba(194, 59, 34, 0.08);
+  }
+  .failure-toggle.active .failure-icon { filter: none; opacity: 1; }
+  .failure-tag {
+    font-size: 12px;
+    margin-left: 4px;
+    vertical-align: middle;
   }
 
   .reps-stepper {
@@ -327,6 +430,41 @@
   }
   .log-line.error { color: var(--iron-red); }
   .log-line.ok { color: var(--ok-green); }
+  .drive-setup-body {
+    padding: 10px;
+    font-size: 11px;
+    line-height: 1.7;
+    color: var(--chalk-dim);
+    border-bottom: 1px solid var(--line);
+  }
+  .drive-setup-body .mono {
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--chalk);
+  }
+  .drive-id-row {
+    display: flex;
+    gap: 8px;
+    padding: 10px;
+  }
+  .drive-id-row input {
+    flex: 1;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    color: var(--chalk);
+    padding: 8px;
+    font-size: 12px;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .drive-id-row button {
+    background: none;
+    border: 1px solid var(--line);
+    color: var(--chalk-dim);
+    font-size: 11px;
+    padding: 0 12px;
+    cursor: pointer;
+    text-transform: uppercase;
+  }
+  .drive-id-row button:hover { color: var(--chalk); border-color: var(--chalk-dim); }
   .manual-copy {
     width: 100%;
     margin-top: 8px;
@@ -423,6 +561,16 @@
     font-size: 14px;
     letter-spacing: 0.03em;
   }
+  .tier-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+  .tier-dot.core { background: var(--iron-red); }
+  .tier-dot.bonus { background: var(--plate-blue); }
   .entry .load {
     font-size: 15px;
     color: var(--chalk);
@@ -455,6 +603,27 @@
     <span id="syncText">Loading…</span>
   </div>
   <div class="backup-row">
+    <button class="clear-btn" id="driveConnectBtn">Connect Drive</button>
+    <button class="clear-btn" id="driveSyncBtn" style="display:none;">Sync now</button>
+    <button class="clear-btn" id="driveSetupToggle">Drive setup</button>
+  </div>
+  <div class="debug-panel" id="drivePanel" style="display:none;">
+    <div class="debug-panel-header"><span>Google Drive Setup</span></div>
+    <div class="drive-setup-body">
+      One-time setup at <span class="mono">console.cloud.google.com</span>:<br>
+      1. Create/select a project<br>
+      2. Enable the "Google Drive API"<br>
+      3. OAuth consent screen → External → add your email as a test user<br>
+      4. Credentials → Create OAuth client ID → Web application → Authorized JavaScript origin:<br>
+      <span class="mono">https://c0demode.github.io</span><br>
+      5. Paste the Client ID below and Save, then tap Connect Drive.
+    </div>
+    <div class="drive-id-row">
+      <input type="text" id="driveClientId" placeholder="xxxx.apps.googleusercontent.com">
+      <button id="driveClientIdSave" class="clear-btn">Save</button>
+    </div>
+  </div>
+  <div class="backup-row">
     <button class="clear-btn" id="shareBtn">Share to Drive</button>
     <button class="clear-btn" id="exportBtn">Export backup</button>
     <button class="clear-btn" id="importBtn">Import backup</button>
@@ -472,19 +641,36 @@
 </header>
 
 <main>
-  <div class="bar-panel">
+  <div class="bar-panel workout-panel">
+    <div class="workout-header">
+      <span class="workout-title">Today: Workout <span id="workoutLetter">A</span></span>
+      <button class="clear-btn" id="switchWorkoutBtn">Switch</button>
+    </div>
+    <div id="workoutList"></div>
+  </div>
+
+  <div class="bar-panel" id="logFormPanel">
     <div class="field-row">
       <div class="field">
         <label for="lift">Lift</label>
         <select id="lift">
-          <option>Squat</option>
-          <option>Bench Press</option>
-          <option>Deadlift</option>
-          <option>Overhead Press</option>
-          <option>Bicep Curls</option>
+          <optgroup label="Program">
+            <option>Squat</option>
+            <option>Bench Press</option>
+            <option>Deadlift</option>
+            <option>Overhead Press</option>
+            <option>Barbell Row</option>
+            <option>Pull-Ups</option>
+            <option>Plank</option>
+          </optgroup>
+          <optgroup label="Bonus">
+            <option>Bicep Curls</option>
+          </optgroup>
         </select>
       </div>
     </div>
+
+    <div class="coaching-note" id="coachingNote" style="display:none;"></div>
 
     <div class="field-row" id="equipmentRow" style="display:none;">
       <div class="field">
@@ -496,8 +682,8 @@
       </div>
     </div>
 
-    <div class="field-row">
-      <div class="field">
+    <div class="field-row" id="weightedFieldsRow">
+      <div class="field" id="weightFieldWrap">
         <label for="weight" id="weightLabel">Weight (lb)</label>
         <input type="number" id="weight" inputmode="decimal" placeholder="225">
       </div>
@@ -511,6 +697,22 @@
         <button type="button" class="reps-reset" id="repsReset">Reset</button>
       </div>
     </div>
+
+    <div class="field-row" id="timedFieldsRow" style="display:none;">
+      <div class="field">
+        <label for="duration">Duration (sec)</label>
+        <div class="reps-stepper">
+          <button type="button" class="step-btn" id="durationMinus">−</button>
+          <input type="number" id="duration" inputmode="numeric" placeholder="0" value="0">
+          <button type="button" class="step-btn" id="durationPlus">+</button>
+        </div>
+        <button type="button" class="reps-reset" id="durationReset">Reset</button>
+      </div>
+    </div>
+
+    <button type="button" class="failure-toggle" id="failureToggle">
+      <span class="failure-icon">🔥</span> Set to Failure
+    </button>
 
     <div id="barbellVisuals">
       <div class="plate-selector" id="plateSelector"></div>
@@ -771,14 +973,64 @@ function highlightDbSelection(w) {
   });
 }
 
+// --- Program data (workout A/B) ---
+const PROGRAM = {
+  A: [
+    { lift: 'Squat', type: 'weighted', sets: 3, repRange: [5,8], restSec: 180,
+      note: 'Ensure safety arms are set in the rack at the proper depth.' },
+    { lift: 'Bench Press', type: 'weighted', sets: 3, repRange: [5,8], restSec: 180,
+      note: 'Set up inside or just outside the rack with spotter arms if lifting heavy alone.' },
+    { lift: 'Pull-Ups', type: 'bodyweight', sets: 3, repRange: null, repsLabel: 'max reps −1-2', restSec: 120,
+      note: 'Max reps minus 1-2. Focus on a dead-stop at the bottom and pulling the chest to the bar. Use a band for assistance if needed.' },
+    { lift: 'Plank', type: 'timed', sets: 3, duration: [45,60], restSec: 60,
+      note: 'Maintain a neutral spine; actively push the floor away and brace the glutes.' }
+  ],
+  B: [
+    { lift: 'Deadlift', type: 'weighted', sets: 3, reps: 5, restSec: 180,
+      note: 'Pull from the floor. Keep the bar tight to your shins and maintain a flat back.' },
+    { lift: 'Overhead Press', type: 'weighted', sets: 3, repRange: [5,8], restSec: 150,
+      note: 'Press from the rack. Clean the bar up or unrack at shoulder height; keep core locked to avoid overextending the lower back.' },
+    { lift: 'Barbell Row', type: 'weighted', sets: 3, repRange: [8,10], restSec: 120,
+      note: 'Hinge at the hips, keep torso parallel-to-sub-parallel to the floor, pull to lower chest.' },
+    { lift: 'Plank', type: 'timed', sets: 3, duration: [45,60], restSec: 60,
+      note: 'Drive elbows toward toes mentally to maximize tension.' }
+  ]
+};
+const EXERCISE_CONFIG = {};
+const EXERCISE_TYPES = {};
+const CORE_LIFTS = new Set();
+['A','B'].forEach(day => PROGRAM[day].forEach(ex => {
+  if (!EXERCISE_CONFIG[ex.lift]) EXERCISE_CONFIG[ex.lift] = ex;
+  EXERCISE_TYPES[ex.lift] = ex.type;
+  CORE_LIFTS.add(ex.lift);
+}));
+EXERCISE_TYPES['Bicep Curls'] = 'weighted';
+
+let inputMode = 'weighted';
+let toFailure = false;
+function setToFailure(val) {
+  toFailure = val;
+  document.getElementById('failureToggle').classList.toggle('active', val);
+}
+document.getElementById('failureToggle').addEventListener('click', () => setToFailure(!toFailure));
+let manualDayOverride = null;
+
 // --- Equipment toggle (Barbell / Dumbbell) ---
+function refreshWeightUI() {
+  const weighted = inputMode === 'weighted';
+  document.getElementById('weightedFieldsRow').style.display = inputMode === 'timed' ? 'none' : 'flex';
+  document.getElementById('timedFieldsRow').style.display = inputMode === 'timed' ? 'flex' : 'none';
+  document.getElementById('weightFieldWrap').style.display = inputMode === 'bodyweight' ? 'none' : '';
+  document.getElementById('barbellVisuals').style.display = (weighted && equipment === 'barbell') ? '' : 'none';
+  document.getElementById('dbSelector').style.display = (weighted && equipment === 'dumbbell') ? 'flex' : 'none';
+}
+
 function setEquipment(mode) {
   equipment = mode;
   document.getElementById('equipBarbell').classList.toggle('active', mode === 'barbell');
   document.getElementById('equipDumbbell').classList.toggle('active', mode === 'dumbbell');
-  document.getElementById('barbellVisuals').style.display = mode === 'barbell' ? '' : 'none';
-  document.getElementById('dbSelector').style.display = mode === 'dumbbell' ? 'flex' : 'none';
   document.getElementById('weightLabel').textContent = mode === 'dumbbell' ? 'Weight per DB (lb)' : 'Weight (lb)';
+  refreshWeightUI();
   if (mode === 'dumbbell') {
     highlightDbSelection(parseFloat(document.getElementById('weight').value));
   }
@@ -786,10 +1038,110 @@ function setEquipment(mode) {
 document.getElementById('equipBarbell').addEventListener('click', () => setEquipment('barbell'));
 document.getElementById('equipDumbbell').addEventListener('click', () => setEquipment('dumbbell'));
 
-document.getElementById('lift').addEventListener('change', () => {
-  const isBicep = document.getElementById('lift').value === 'Bicep Curls';
+function setInputMode(mode) {
+  inputMode = mode;
+  refreshWeightUI();
+}
+
+function applyLiftSelection(liftName) {
+  document.getElementById('lift').value = liftName;
+  const isBicep = liftName === 'Bicep Curls';
   document.getElementById('equipmentRow').style.display = isBicep ? '' : 'none';
-  if (!isBicep) setEquipment('barbell');
+  setInputMode(EXERCISE_TYPES[liftName] || 'weighted');
+  if (!isBicep) {
+    setEquipment('barbell');
+  } else {
+    setEquipment(equipment);
+  }
+  const cfg = EXERCISE_CONFIG[liftName];
+  const noteEl = document.getElementById('coachingNote');
+  if (cfg && cfg.note) {
+    noteEl.textContent = cfg.note;
+    noteEl.style.display = '';
+  } else {
+    noteEl.style.display = 'none';
+  }
+  // Auto-set the rest timer to this exercise's target rest, unless a rest is already counting down
+  if (cfg && !timerRunning) {
+    setTimerPreset(cfg.restSec);
+  }
+}
+
+document.getElementById('lift').addEventListener('change', () => {
+  applyLiftSelection(document.getElementById('lift').value);
+});
+
+// --- Guided workout flow ---
+function getTodayDateKey() { return new Date().toDateString(); }
+
+function getCurrentProgramDay() {
+  if (manualDayOverride) return manualDayOverride;
+  const todayKey = getTodayDateKey();
+  const todays = entries.filter(e => e.programDay && new Date(e.timestamp).toDateString() === todayKey);
+  if (todays.length) return todays[todays.length - 1].programDay;
+  const past = entries.filter(e => e.programDay).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+  if (!past.length) return 'A';
+  return past[0].programDay === 'A' ? 'B' : 'A';
+}
+
+// Returns today's program-config entry for a lift, if that lift is scheduled for today's workout day
+function getTodaysExerciseConfig(liftName) {
+  const day = getCurrentProgramDay();
+  return PROGRAM[day].find(x => x.lift === liftName) || null;
+}
+
+function selectProgramExercise(day, ex) {
+  applyLiftSelection(ex.lift);
+  const panel = document.getElementById('logFormPanel');
+  if (panel) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function renderTodayWorkout() {
+  const day = getCurrentProgramDay();
+  document.getElementById('workoutLetter').textContent = day;
+  const list = document.getElementById('workoutList');
+  list.innerHTML = '';
+  const todayKey = getTodayDateKey();
+  PROGRAM[day].forEach(ex => {
+    const todaysSets = entries.filter(e => e.programDay === day && e.lift === ex.lift && new Date(e.timestamp).toDateString() === todayKey);
+    const done = todaysSets.length >= ex.sets;
+    const lastEntry = entries.filter(e => e.lift === ex.lift).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
+    let lastText = 'No history yet';
+    if (lastEntry) {
+      lastText = ex.type === 'timed' ? `Last: ${lastEntry.durationSeconds}s`
+        : ex.type === 'bodyweight' ? `Last: ${lastEntry.reps} reps`
+        : `Last: ${lastEntry.weight}×${lastEntry.reps}`;
+    }
+    const targetText = ex.type === 'timed' ? `${ex.sets} × ${ex.duration[0]}-${ex.duration[1]}s`
+      : ex.repRange ? `${ex.sets} × ${ex.repRange[0]}-${ex.repRange[1]}`
+      : ex.repsLabel ? `${ex.sets} × ${ex.repsLabel}`
+      : `${ex.sets} × ${ex.reps}`;
+    const row = document.createElement('div');
+    row.className = 'workout-item';
+    row.innerHTML = `
+      <div class="workout-item-info">
+        <span class="workout-item-name">${ex.lift}</span>
+        <span class="workout-item-target">${targetText} · rest ${Math.round(ex.restSec/6)/10}m</span>
+        <span class="workout-item-last">${lastText}</span>
+      </div>
+      <div class="workout-item-actions">
+        <span class="workout-item-status ${done ? 'done' : ''}">${done ? '✓' : todaysSets.length + '/' + ex.sets}</span>
+        <button class="workout-log-btn" data-lift="${ex.lift}">Log</button>
+      </div>
+    `;
+    list.appendChild(row);
+  });
+  list.querySelectorAll('.workout-log-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const ex = PROGRAM[day].find(x => x.lift === btn.dataset.lift);
+      selectProgramExercise(day, ex);
+    });
+  });
+}
+document.getElementById('switchWorkoutBtn').addEventListener('click', () => {
+  const current = getCurrentProgramDay();
+  manualDayOverride = current === 'A' ? 'B' : 'A';
+  renderTodayWorkout();
 });
 
 buildPlateSelector();
@@ -829,9 +1181,15 @@ function renderLedger() {
     groups[day].forEach(e => {
       const row = document.createElement('div');
       row.className = 'entry';
+      const tag = e.equipment === 'dumbbell' ? 'DB' : e.equipment === 'bodyweight' ? 'BW' : e.equipment === 'timed' ? 'TIMER' : 'BB';
+      const loadText = e.equipment === 'timed' ? `${e.durationSeconds}s`
+        : e.equipment === 'bodyweight' ? `BW × ${e.reps}`
+        : `${e.weight} × ${e.reps}`;
+      const tierClass = CORE_LIFTS.has(e.lift) ? 'core' : 'bonus';
+      const failureTag = e.toFailure ? '<span class="failure-tag" title="To failure">🔥</span>' : '';
       row.innerHTML = `
-        <span class="lift">${e.lift}<span class="equip-tag">${e.equipment === 'dumbbell' ? 'DB' : 'BB'}</span></span>
-        <span class="load">${e.weight} × ${e.reps}<span class="time">${fmtTime(e.timestamp)}</span></span>
+        <span class="lift"><span class="tier-dot ${tierClass}" title="${tierClass === 'core' ? 'Program lift' : 'Bonus lift'}"></span>${e.lift}<span class="equip-tag">${tag}</span></span>
+        <span class="load">${loadText}${failureTag}<span class="time">${fmtTime(e.timestamp)}</span></span>
         <button class="del" data-id="${e.id}">✕</button>
       `;
       dayDiv.appendChild(row);
@@ -842,7 +1200,9 @@ function renderLedger() {
     btn.addEventListener('click', () => {
       entries = entries.filter(e => e.id !== btn.dataset.id);
       renderLedger();
+      renderTodayWorkout();
       saveLocal();
+      scheduleDriveSync();
     });
   });
 }
@@ -874,6 +1234,156 @@ function loadLocal() {
     setSyncState('error', 'Storage unavailable — use Export/Import');
     entries = [];
   }
+}
+
+// --- Direct Google Drive sync (real OAuth, works because we're on https) ---
+const DRIVE_FILE_NAME = 'weightlifting-log.json';
+let driveClientId = localStorage.getItem('drive_client_id') || '';
+let driveTokenClient = null;
+let driveAccessToken = null;
+let driveTokenExpiry = 0;
+let driveFileId = localStorage.getItem('drive_file_id') || null;
+let driveSyncTimer = null;
+
+document.getElementById('driveClientId').value = driveClientId;
+
+document.getElementById('driveSetupToggle').addEventListener('click', () => {
+  const panel = document.getElementById('drivePanel');
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+});
+
+document.getElementById('driveClientIdSave').addEventListener('click', () => {
+  driveClientId = document.getElementById('driveClientId').value.trim();
+  localStorage.setItem('drive_client_id', driveClientId);
+  driveTokenClient = null;
+  logEvent('ok', 'Google OAuth Client ID saved');
+});
+
+function loadGsiScript() {
+  return new Promise((resolve, reject) => {
+    if (window.google && window.google.accounts && window.google.accounts.oauth2) { resolve(); return; }
+    const existing = document.getElementById('gsiScript');
+    if (existing) { existing.addEventListener('load', () => resolve()); return; }
+    const s = document.createElement('script');
+    s.id = 'gsiScript';
+    s.src = 'https://accounts.google.com/gsi/client';
+    s.async = true;
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error('Failed to load Google Identity Services script'));
+    document.head.appendChild(s);
+  });
+}
+
+async function ensureDriveTokenClient() {
+  if (!driveClientId) throw new Error('No Google OAuth Client ID set — open "Drive setup" and paste one in');
+  await loadGsiScript();
+  if (!driveTokenClient) {
+    driveTokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: driveClientId,
+      scope: 'https://www.googleapis.com/auth/drive.file',
+      callback: () => {}
+    });
+  }
+  return driveTokenClient;
+}
+
+function requestDriveToken(interactive) {
+  return new Promise((resolve, reject) => {
+    ensureDriveTokenClient().then(client => {
+      client.callback = (resp) => {
+        if (resp.error) { reject(new Error(resp.error)); return; }
+        driveAccessToken = resp.access_token;
+        driveTokenExpiry = Date.now() + (resp.expires_in * 1000) - 60000;
+        resolve(driveAccessToken);
+      };
+      client.requestAccessToken({ prompt: interactive ? 'consent' : '' });
+    }).catch(reject);
+  });
+}
+
+async function getDriveToken() {
+  if (driveAccessToken && Date.now() < driveTokenExpiry) return driveAccessToken;
+  return requestDriveToken(!driveAccessToken);
+}
+
+document.getElementById('driveConnectBtn').addEventListener('click', async () => {
+  try {
+    setSyncState('syncing', 'Connecting to Drive…');
+    await requestDriveToken(true);
+    document.getElementById('driveConnectBtn').textContent = 'Reconnect Drive';
+    document.getElementById('driveSyncBtn').style.display = '';
+    logEvent('ok', 'Connected to Google Drive');
+    await syncToDriveReal();
+  } catch (e) {
+    logEvent('error', 'Drive connect failed', e);
+    setSyncState('error', 'Drive connect failed — check debug log');
+  }
+});
+document.getElementById('driveSyncBtn').addEventListener('click', syncToDriveReal);
+
+async function driveApiFetch(url, options = {}) {
+  const token = await getDriveToken();
+  const headers = Object.assign({}, options.headers, { Authorization: `Bearer ${token}` });
+  const res = await fetch(url, Object.assign({}, options, { headers }));
+  if (res.status === 401) {
+    driveAccessToken = null;
+    throw new Error('Drive token expired — tap Connect Drive again');
+  }
+  return res;
+}
+
+async function findOrCreateDriveFile() {
+  if (driveFileId) return driveFileId;
+  const q = encodeURIComponent(`name='${DRIVE_FILE_NAME}' and trashed=false`);
+  const listRes = await driveApiFetch(`https://www.googleapis.com/drive/v3/files?q=${q}&spaces=drive&fields=files(id,name)`);
+  if (!listRes.ok) throw new Error(`Drive file search failed: HTTP ${listRes.status}`);
+  const listData = await listRes.json();
+  if (listData.files && listData.files.length) {
+    driveFileId = listData.files[0].id;
+    logEvent('ok', `Drive: found existing file ${driveFileId}`);
+  } else {
+    const createRes = await driveApiFetch('https://www.googleapis.com/drive/v3/files', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: DRIVE_FILE_NAME, mimeType: 'application/json' })
+    });
+    if (!createRes.ok) throw new Error(`Drive file create failed: HTTP ${createRes.status}`);
+    const createData = await createRes.json();
+    driveFileId = createData.id;
+    logEvent('ok', `Drive: created new file ${driveFileId}`);
+  }
+  localStorage.setItem('drive_file_id', driveFileId);
+  return driveFileId;
+}
+
+async function syncToDriveReal() {
+  if (!driveClientId) return;
+  setSyncState('syncing', 'Syncing to Drive…');
+  try {
+    const fileId = await findOrCreateDriveFile();
+    const payload = JSON.stringify(entries, null, 2);
+    const res = await driveApiFetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: payload
+    });
+    if (!res.ok) throw new Error(`Drive upload failed: HTTP ${res.status}`);
+    setSyncState('synced', `Synced to Drive · ${new Date().toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'})}`);
+    logEvent('ok', `Drive: synced ${entries.length} entries`);
+  } catch (e) {
+    setSyncState('error', 'Drive sync failed — saved locally, will retry');
+    logEvent('error', 'Drive sync failed', e);
+  }
+}
+
+function scheduleDriveSync() {
+  if (!driveAccessToken) return;
+  if (driveSyncTimer) clearTimeout(driveSyncTimer);
+  driveSyncTimer = setTimeout(syncToDriveReal, 1200);
+}
+
+if (driveClientId) {
+  document.getElementById('driveConnectBtn').textContent = 'Connect Drive';
 }
 
 function exportBackup() {
@@ -935,12 +1445,17 @@ document.getElementById('importFile').addEventListener('change', async (ev) => {
     const existingIds = new Set(entries.map(e => e.id));
     let added = 0;
     incoming.forEach(e => {
-      if (!e || typeof e.weight === 'undefined' || typeof e.reps === 'undefined') return;
+      if (!e) return;
+      const hasWeightedData = typeof e.weight !== 'undefined' && typeof e.reps !== 'undefined';
+      const hasTimedData = typeof e.durationSeconds !== 'undefined';
+      if (!hasWeightedData && !hasTimedData) return;
       if (!e.id) e.id = Date.now().toString(36) + Math.random().toString(36).slice(2,7);
       if (!existingIds.has(e.id)) { entries.push(e); existingIds.add(e.id); added++; }
     });
     renderLedger();
+    renderTodayWorkout();
     saveLocal();
+    scheduleDriveSync();
     logEvent('ok', `Import complete: ${added} new entries added (duplicates skipped)`);
   } catch (e) {
     logEvent('error', 'Import failed', e);
@@ -962,19 +1477,38 @@ document.getElementById('reps').addEventListener('input', () => {
   document.getElementById('reps').classList.remove('carried');
 });
 
+function getDuration() { return parseInt(document.getElementById('duration').value, 10) || 0; }
+function setDuration(v) {
+  document.getElementById('duration').value = Math.max(0, v);
+  document.getElementById('duration').classList.remove('carried');
+}
+document.getElementById('durationMinus').addEventListener('click', () => setDuration(getDuration() - 5));
+document.getElementById('durationPlus').addEventListener('click', () => setDuration(getDuration() + 5));
+document.getElementById('durationReset').addEventListener('click', () => setDuration(0));
+document.getElementById('duration').addEventListener('input', () => {
+  document.getElementById('duration').classList.remove('carried');
+});
+
 function applyCarriedValues(weight, reps) {
   const weightEl = document.getElementById('weight');
   const repsEl = document.getElementById('reps');
-  weightEl.value = weight;
   repsEl.value = reps;
-  weightEl.classList.add('carried');
   repsEl.classList.add('carried');
+  if (inputMode === 'bodyweight') return;
+  weightEl.value = weight;
+  weightEl.classList.add('carried');
   if (equipment === 'barbell') {
     plateCounts = countsFromArray(plateBreakdown(weight));
     renderBar();
   } else {
     highlightDbSelection(weight);
   }
+}
+
+function applyCarriedDuration(seconds) {
+  const durationEl = document.getElementById('duration');
+  durationEl.value = seconds;
+  durationEl.classList.add('carried');
 }
 
 // --- Rest Timer ---
@@ -1076,28 +1610,75 @@ setTimerPreset(60);
 
 document.getElementById('logBtn').addEventListener('click', async () => {
   const lift = document.getElementById('lift').value;
-  const weight = parseFloat(document.getElementById('weight').value);
-  const reps = getReps();
   const when = document.getElementById('when').value;
 
-  if (!weight || !reps || !when) {
-    setSyncState('error', 'Enter weight, reps, and time');
+  if (!when) {
+    setSyncState('error', 'Enter a time');
     setTimeout(() => setSyncState(entries.length ? 'synced' : '', ''), 1500);
     return;
   }
 
   const entry = {
     id: Date.now().toString(36) + Math.random().toString(36).slice(2,7),
-    lift, weight, reps, equipment,
+    lift,
     timestamp: new Date(when).toISOString()
   };
+
+  if (inputMode === 'timed') {
+    const duration = getDuration();
+    if (!duration) {
+      setSyncState('error', 'Enter a duration');
+      setTimeout(() => setSyncState(entries.length ? 'synced' : '', ''), 1500);
+      return;
+    }
+    entry.durationSeconds = duration;
+    entry.equipment = 'timed';
+  } else if (inputMode === 'bodyweight') {
+    const reps = getReps();
+    if (!reps) {
+      setSyncState('error', 'Enter reps');
+      setTimeout(() => setSyncState(entries.length ? 'synced' : '', ''), 1500);
+      return;
+    }
+    entry.reps = reps;
+    entry.weight = 0;
+    entry.equipment = 'bodyweight';
+  } else {
+    const weight = parseFloat(document.getElementById('weight').value);
+    const reps = getReps();
+    if (!weight || !reps) {
+      setSyncState('error', 'Enter weight and reps');
+      setTimeout(() => setSyncState(entries.length ? 'synced' : '', ''), 1500);
+      return;
+    }
+    entry.weight = weight;
+    entry.reps = reps;
+    entry.equipment = equipment;
+  }
+
+  const todaysCfg = getTodaysExerciseConfig(lift);
+  if (todaysCfg) entry.programDay = getCurrentProgramDay();
+  if (toFailure) entry.toFailure = true;
+
   entries.push(entry);
-  logEvent('info', `Logged set: ${lift} ${weight}×${reps} (${equipment})`);
+  logEvent('info', `Logged set: ${lift} ${inputMode === 'timed' ? entry.durationSeconds + 's' : (entry.weight || 'BW') + '×' + entry.reps} (${entry.equipment})${todaysCfg ? ' — counted toward Workout ' + entry.programDay : ''}${toFailure ? ' [to failure]' : ''}`);
   renderLedger();
+  renderTodayWorkout();
   saveLocal();
+  scheduleDriveSync();
 
   document.getElementById('when').value = nowLocalISO();
-  applyCarriedValues(weight, reps);
+  setToFailure(false);
+  if (inputMode === 'timed') {
+    applyCarriedDuration(entry.durationSeconds);
+  } else {
+    applyCarriedValues(entry.weight, entry.reps);
+  }
+
+  if (todaysCfg) {
+    setTimerPreset(todaysCfg.restSec);
+    startTimer();
+  }
 });
 
 function getLastEntry() {
@@ -1109,14 +1690,17 @@ function getLastEntry() {
   logEvent('info', `App init. localStorage available: ${typeof localStorage !== 'undefined'}, location: ${location.protocol}//${location.host}`);
   loadLocal();
   renderLedger();
+  renderTodayWorkout();
   const last = getLastEntry();
   if (last) {
-    document.getElementById('lift').value = last.lift;
-    const isBicep = last.lift === 'Bicep Curls';
-    document.getElementById('equipmentRow').style.display = isBicep ? '' : 'none';
+    applyLiftSelection(last.lift);
     setEquipment(last.equipment === 'dumbbell' ? 'dumbbell' : 'barbell');
-    applyCarriedValues(last.weight, last.reps);
-    logEvent('info', `Carried forward last set: ${last.lift} ${last.weight}×${last.reps} (${last.equipment || 'barbell'})`);
+    if (inputMode === 'timed') {
+      applyCarriedDuration(last.durationSeconds || 0);
+    } else {
+      applyCarriedValues(last.weight, last.reps);
+    }
+    logEvent('info', `Carried forward last set: ${last.lift} (${last.equipment || 'barbell'})`);
   }
 })();
 </script>
