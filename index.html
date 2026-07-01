@@ -127,6 +127,100 @@
   .plate-btn:active { background: var(--iron-red); color: #fff; }
   .plate-btn.small:active { background: var(--plate-blue); color: #fff; }
 
+  .equip-toggle {
+    display: flex;
+    border: 1px solid var(--line);
+  }
+  .equip-btn {
+    flex: 1;
+    background: var(--bg);
+    color: var(--chalk-dim);
+    border: none;
+    padding: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .equip-btn + .equip-btn { border-left: 1px solid var(--line); }
+  .equip-btn.active { background: var(--iron-red); color: #fff; }
+
+  .db-selector { justify-content: flex-start; }
+  .db-btn {
+    border: 2px solid var(--plate-blue);
+    background: transparent;
+    color: var(--chalk);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    padding: 8px 4px;
+    min-width: 44px;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  .db-btn.selected { background: var(--plate-blue); color: #fff; }
+
+  .equip-tag {
+    font-size: 9px;
+    color: var(--chalk-dim);
+    border: 1px solid var(--line);
+    padding: 1px 4px;
+    margin-left: 5px;
+    vertical-align: middle;
+    letter-spacing: 0.04em;
+  }
+
+  .timer-panel { margin-top: -6px; }
+  .timer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .timer-title {
+    font-family: 'Oswald', sans-serif;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--chalk-dim);
+  }
+  .timer-display {
+    font-family: 'Oswald', sans-serif;
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--chalk);
+    letter-spacing: 0.03em;
+  }
+  .timer-display.ringing { color: var(--iron-red); animation: pulse 0.6s infinite; }
+  .timer-presets {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+  .preset-btn {
+    flex: 1;
+    min-width: 50px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    color: var(--chalk);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    padding: 8px 4px;
+    cursor: pointer;
+  }
+  .preset-btn:active, .preset-btn.active-preset { border-color: var(--plate-blue); color: var(--plate-blue); }
+  .timer-controls {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .timer-ctrl {
+    flex: 1;
+    width: auto;
+    font-family: 'Oswald', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 13px;
+  }
+
   .bar-controls {
     display: flex;
     justify-content: space-between;
@@ -286,6 +380,8 @@
     outline: none;
     border-color: var(--iron-red);
   }
+  input.carried { color: var(--chalk-dim); }
+  input.carried::placeholder { color: var(--chalk-dim); }
 
   .log-btn {
     width: 100%;
@@ -385,12 +481,24 @@
           <option>Bench Press</option>
           <option>Deadlift</option>
           <option>Overhead Press</option>
+          <option>Bicep Curls</option>
         </select>
       </div>
     </div>
+
+    <div class="field-row" id="equipmentRow" style="display:none;">
+      <div class="field">
+        <label>Equipment</label>
+        <div class="equip-toggle">
+          <button type="button" class="equip-btn active" id="equipBarbell" data-equip="barbell">Barbell</button>
+          <button type="button" class="equip-btn" id="equipDumbbell" data-equip="dumbbell">Dumbbell</button>
+        </div>
+      </div>
+    </div>
+
     <div class="field-row">
       <div class="field">
-        <label for="weight">Weight (lb)</label>
+        <label for="weight" id="weightLabel">Weight (lb)</label>
         <input type="number" id="weight" inputmode="decimal" placeholder="225">
       </div>
       <div class="field">
@@ -404,18 +512,22 @@
       </div>
     </div>
 
-    <div class="plate-selector" id="plateSelector"></div>
+    <div id="barbellVisuals">
+      <div class="plate-selector" id="plateSelector"></div>
 
-    <div class="bar-rack" id="barRack">
-      <div class="plates" id="platesLeft"></div>
-      <div class="sleeve"></div>
-      <div class="plates" id="platesRight"></div>
+      <div class="bar-rack" id="barRack">
+        <div class="plates" id="platesLeft"></div>
+        <div class="sleeve"></div>
+        <div class="plates" id="platesRight"></div>
+      </div>
+      <div class="weight-readout" id="weightReadout">45 LB BAR</div>
+      <div class="bar-controls">
+        <span class="tap-hint">Tap a plate on the bar to pull it</span>
+        <button class="clear-btn" id="clearBtn">Clear bar</button>
+      </div>
     </div>
-    <div class="weight-readout" id="weightReadout">45 LB BAR</div>
-    <div class="bar-controls">
-      <span class="tap-hint">Tap a plate on the bar to pull it</span>
-      <button class="clear-btn" id="clearBtn">Clear bar</button>
-    </div>
+
+    <div class="plate-selector db-selector" id="dbSelector" style="display:none;"></div>
 
     <div class="field-row" style="margin-top:14px;">
       <div class="field">
@@ -425,6 +537,25 @@
     </div>
 
     <button class="log-btn" id="logBtn">Log Set</button>
+  </div>
+
+  <div class="bar-panel timer-panel">
+    <div class="timer-header">
+      <span class="timer-title">Rest Timer</span>
+      <span class="timer-display" id="timerDisplay">00:00</span>
+    </div>
+    <div class="timer-presets" id="timerPresets">
+      <button type="button" class="preset-btn" data-secs="30">30s</button>
+      <button type="button" class="preset-btn" data-secs="60">60s</button>
+      <button type="button" class="preset-btn" data-secs="90">90s</button>
+      <button type="button" class="preset-btn" data-secs="120">2m</button>
+      <button type="button" class="preset-btn" data-secs="180">3m</button>
+    </div>
+    <div class="timer-controls">
+      <button type="button" class="step-btn timer-ctrl" id="timerStart">Start</button>
+      <button type="button" class="step-btn timer-ctrl" id="timerPause">Pause</button>
+      <button type="button" class="step-btn timer-ctrl" id="timerReset">Reset</button>
+    </div>
   </div>
 
   <div id="ledger"></div>
@@ -438,6 +569,8 @@ const BAR_WEIGHT = 45;
 
 let entries = [];
 let plateCounts = { 45:0, 35:0, 25:0, 10:0, 5:0, 2.5:0 };
+let equipment = 'barbell';
+const DB_WEIGHTS = [5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100];
 
 function setSyncState(state, text) {
   const dot = document.getElementById('syncDot');
@@ -547,6 +680,7 @@ function buildPlateSelector() {
 function addPlate(size) {
   plateCounts[size]++;
   syncWeightField();
+  document.getElementById('weight').classList.remove('carried');
   renderBar();
 }
 
@@ -554,6 +688,7 @@ function removePlate(size) {
   if (plateCounts[size] > 0) {
     plateCounts[size]--;
     syncWeightField();
+    document.getElementById('weight').classList.remove('carried');
     renderBar();
   }
 }
@@ -561,6 +696,7 @@ function removePlate(size) {
 function clearBar() {
   PLATE_SIZES.forEach(s => plateCounts[s] = 0);
   syncWeightField();
+  document.getElementById('weight').classList.remove('carried');
   renderBar();
 }
 
@@ -600,12 +736,64 @@ function renderBar() {
 
 document.getElementById('weight').addEventListener('input', () => {
   const w = parseFloat(document.getElementById('weight').value);
-  plateCounts = countsFromArray(plateBreakdown(w || BAR_WEIGHT));
-  renderBar();
+  document.getElementById('weight').classList.remove('carried');
+  if (equipment === 'barbell') {
+    plateCounts = countsFromArray(plateBreakdown(w || BAR_WEIGHT));
+    renderBar();
+  } else {
+    highlightDbSelection(w);
+  }
 });
 document.getElementById('clearBtn').addEventListener('click', clearBar);
 
+// --- Dumbbell weight selector ---
+function buildDbSelector() {
+  const sel = document.getElementById('dbSelector');
+  sel.innerHTML = '';
+  DB_WEIGHTS.forEach(w => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'db-btn';
+    btn.textContent = w;
+    btn.dataset.weight = w;
+    btn.addEventListener('click', () => selectDbWeight(w));
+    sel.appendChild(btn);
+  });
+}
+function selectDbWeight(w) {
+  document.getElementById('weight').value = w;
+  document.getElementById('weight').classList.remove('carried');
+  highlightDbSelection(w);
+}
+function highlightDbSelection(w) {
+  document.querySelectorAll('.db-btn').forEach(b => {
+    b.classList.toggle('selected', parseFloat(b.dataset.weight) === parseFloat(w));
+  });
+}
+
+// --- Equipment toggle (Barbell / Dumbbell) ---
+function setEquipment(mode) {
+  equipment = mode;
+  document.getElementById('equipBarbell').classList.toggle('active', mode === 'barbell');
+  document.getElementById('equipDumbbell').classList.toggle('active', mode === 'dumbbell');
+  document.getElementById('barbellVisuals').style.display = mode === 'barbell' ? '' : 'none';
+  document.getElementById('dbSelector').style.display = mode === 'dumbbell' ? 'flex' : 'none';
+  document.getElementById('weightLabel').textContent = mode === 'dumbbell' ? 'Weight per DB (lb)' : 'Weight (lb)';
+  if (mode === 'dumbbell') {
+    highlightDbSelection(parseFloat(document.getElementById('weight').value));
+  }
+}
+document.getElementById('equipBarbell').addEventListener('click', () => setEquipment('barbell'));
+document.getElementById('equipDumbbell').addEventListener('click', () => setEquipment('dumbbell'));
+
+document.getElementById('lift').addEventListener('change', () => {
+  const isBicep = document.getElementById('lift').value === 'Bicep Curls';
+  document.getElementById('equipmentRow').style.display = isBicep ? '' : 'none';
+  if (!isBicep) setEquipment('barbell');
+});
+
 buildPlateSelector();
+buildDbSelector();
 renderBar();
 
 function fmtDay(dateStr) {
@@ -642,7 +830,7 @@ function renderLedger() {
       const row = document.createElement('div');
       row.className = 'entry';
       row.innerHTML = `
-        <span class="lift">${e.lift}</span>
+        <span class="lift">${e.lift}<span class="equip-tag">${e.equipment === 'dumbbell' ? 'DB' : 'BB'}</span></span>
         <span class="load">${e.weight} × ${e.reps}<span class="time">${fmtTime(e.timestamp)}</span></span>
         <button class="del" data-id="${e.id}">✕</button>
       `;
@@ -763,10 +951,128 @@ document.getElementById('importFile').addEventListener('change', async (ev) => {
 });
 
 function getReps() { return parseInt(document.getElementById('reps').value, 10) || 0; }
-function setReps(v) { document.getElementById('reps').value = Math.max(0, v); }
+function setReps(v) {
+  document.getElementById('reps').value = Math.max(0, v);
+  document.getElementById('reps').classList.remove('carried');
+}
 document.getElementById('repsMinus').addEventListener('click', () => setReps(getReps() - 1));
 document.getElementById('repsPlus').addEventListener('click', () => setReps(getReps() + 1));
 document.getElementById('repsReset').addEventListener('click', () => setReps(0));
+document.getElementById('reps').addEventListener('input', () => {
+  document.getElementById('reps').classList.remove('carried');
+});
+
+function applyCarriedValues(weight, reps) {
+  const weightEl = document.getElementById('weight');
+  const repsEl = document.getElementById('reps');
+  weightEl.value = weight;
+  repsEl.value = reps;
+  weightEl.classList.add('carried');
+  repsEl.classList.add('carried');
+  if (equipment === 'barbell') {
+    plateCounts = countsFromArray(plateBreakdown(weight));
+    renderBar();
+  } else {
+    highlightDbSelection(weight);
+  }
+}
+
+// --- Rest Timer ---
+let audioCtx = null;
+let timerRemaining = 0;
+let timerTotal = 0;
+let timerHandle = null;
+let timerRunning = false;
+
+function ensureAudioCtx() {
+  if (!audioCtx) {
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+    catch (e) { logEvent('error', 'Web Audio unavailable', e); return null; }
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function formatTimer(s) {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+}
+function updateTimerDisplay() {
+  document.getElementById('timerDisplay').textContent = formatTimer(Math.max(0, timerRemaining));
+}
+function setTimerPreset(secs) {
+  if (timerHandle) clearInterval(timerHandle);
+  timerRunning = false;
+  timerRemaining = secs;
+  timerTotal = secs;
+  document.getElementById('timerDisplay').classList.remove('ringing');
+  document.querySelectorAll('.preset-btn').forEach(b => b.classList.toggle('active-preset', parseInt(b.dataset.secs,10) === secs));
+  updateTimerDisplay();
+}
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => setTimerPreset(parseInt(btn.dataset.secs, 10)));
+});
+
+function startTimer() {
+  ensureAudioCtx();
+  if (timerRemaining <= 0) return;
+  if (timerRunning) return;
+  timerRunning = true;
+  timerHandle = setInterval(() => {
+    timerRemaining--;
+    updateTimerDisplay();
+    if (timerRemaining <= 0) {
+      clearInterval(timerHandle);
+      timerRunning = false;
+      playAlarm();
+    }
+  }, 1000);
+}
+function pauseTimer() {
+  if (timerHandle) clearInterval(timerHandle);
+  timerRunning = false;
+}
+function resetTimer() {
+  if (timerHandle) clearInterval(timerHandle);
+  timerRunning = false;
+  timerRemaining = timerTotal;
+  document.getElementById('timerDisplay').classList.remove('ringing');
+  updateTimerDisplay();
+}
+document.getElementById('timerStart').addEventListener('click', startTimer);
+document.getElementById('timerPause').addEventListener('click', pauseTimer);
+document.getElementById('timerReset').addEventListener('click', resetTimer);
+
+function playAlarm() {
+  const display = document.getElementById('timerDisplay');
+  display.classList.add('ringing');
+  setTimeout(() => display.classList.remove('ringing'), 4000);
+  if (navigator.vibrate) navigator.vibrate([300, 150, 300, 150, 300]);
+  try {
+    const ctx = ensureAudioCtx();
+    if (!ctx) return;
+    const beepAt = (offset, freq = 880, dur = 0.28) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      const t0 = ctx.currentTime + offset;
+      gain.gain.setValueAtTime(0.0001, t0);
+      gain.gain.exponentialRampToValueAtTime(0.35, t0 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      osc.start(t0);
+      osc.stop(t0 + dur + 0.02);
+    };
+    beepAt(0); beepAt(0.4); beepAt(0.8);
+    logEvent('ok', 'Rest timer finished — alarm played');
+  } catch (e) {
+    logEvent('error', 'Alarm playback failed', e);
+  }
+}
+setTimerPreset(60);
 
 document.getElementById('logBtn').addEventListener('click', async () => {
   const lift = document.getElementById('lift').value;
@@ -782,23 +1088,36 @@ document.getElementById('logBtn').addEventListener('click', async () => {
 
   const entry = {
     id: Date.now().toString(36) + Math.random().toString(36).slice(2,7),
-    lift, weight, reps,
+    lift, weight, reps, equipment,
     timestamp: new Date(when).toISOString()
   };
   entries.push(entry);
-  logEvent('info', `Logged set: ${lift} ${weight}×${reps}`);
+  logEvent('info', `Logged set: ${lift} ${weight}×${reps} (${equipment})`);
   renderLedger();
   saveLocal();
 
-  setReps(0);
   document.getElementById('when').value = nowLocalISO();
-  clearBar();
+  applyCarriedValues(weight, reps);
 });
+
+function getLastEntry() {
+  if (!entries.length) return null;
+  return entries.reduce((a, b) => new Date(a.timestamp) > new Date(b.timestamp) ? a : b);
+}
 
 (function init() {
   logEvent('info', `App init. localStorage available: ${typeof localStorage !== 'undefined'}, location: ${location.protocol}//${location.host}`);
   loadLocal();
   renderLedger();
+  const last = getLastEntry();
+  if (last) {
+    document.getElementById('lift').value = last.lift;
+    const isBicep = last.lift === 'Bicep Curls';
+    document.getElementById('equipmentRow').style.display = isBicep ? '' : 'none';
+    setEquipment(last.equipment === 'dumbbell' ? 'dumbbell' : 'barbell');
+    applyCarriedValues(last.weight, last.reps);
+    logEvent('info', `Carried forward last set: ${last.lift} ${last.weight}×${last.reps} (${last.equipment || 'barbell'})`);
+  }
 })();
 </script>
 </body>
