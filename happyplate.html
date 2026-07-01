@@ -701,4 +701,138 @@ function exportBackup() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-   
+    a.download = `iron-log-backup-${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    logEvent('ok', `Exported ${entries.length} entries as backup file`);
+  } catch (e) {
+    logEvent('error', 'Export failed', e);
+  }
+}
+async function shareBackup() {
+  const payload = JSON.stringify(entries, null, 2);
+  const filename = `iron-log-backup-${new Date().toISOString().slice(0,10)}.json`;
+  try {
+    const file = new File([payload], filename, { type: 'application/json' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({
+        files: [file],
+        title: 'Iron Log Backup',
+        text: `Weightlifting log backup — ${entries.length} sets`
+      });
+      logEvent('ok', `Shared backup via system share sheet (${entries.length} entries)`);
+      return;
+    }
+    logEvent('info', 'File sharing not supported in this browser — downloading instead');
+  } catch (e) {
+    if (e.name === 'AbortError') {
+      logEvent('info', 'Share cancelled');
+      return;
+    }
+    logEvent('error', 'Share failed — downloading instead', e);
+  }
+  exportBackup();
+}
+document.getElementById('shareBtn').addEventListener('click', shareBackup);
+
+document.getElementById('exportBtn').addEventListener('click', exportBackup);
+
+document.getElementById('importBtn').addEventListener('click', () => {
+  document.getElementById('importFile').click();
+});
+document.getElementById('importFile').addEventListener('change', async (ev) => {
+  const file = ev.target.files[0];
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const parsed = JSON.parse(text);
+    const incoming = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.entries) ? parsed.entries : null);
+    if (!incoming) throw new Error('File does not contain a recognizable entries array');
+    const existingIds = new Set(entries.map(e => e.id));
+    let added = 0;
+    incoming.forEach(e => {
+      if (!e || typeof e.weight === 'undefined' || typeof e.reps === 'undefined') return;
+      if (!e.id) e.id = Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+      if (!existingIds.has(e.id)) { entries.push(e); existingIds.add(e.id); added++; }
+    });
+    renderLedger();
+    saveLocal();
+    logEvent('ok', `Import complete: ${added} new entries added (duplicates skipped)`);
+  } catch (e) {
+    logEvent('error', 'Import failed', e);
+    setSyncState('error', 'Import failed — check debug log');
+  } finally {
+    ev.target.value = '';
+  }
+});
+
+function getReps() { return parseInt(document.getElementById('reps').value, 10) || 0; }
+function setReps(v) {
+  document.getElementById('reps').value = Math.max(0, v);
+  document.getElementById('reps').classList.remove('carried');
+}
+document.getElementById('repsMinus').addEventListener('click', () => setReps(getReps() - 1));
+document.getElementById('repsPlus').addEventListener('click', () => setReps(getReps() + 1));
+document.getElementById('repsReset').addEventListener('click', () => setReps(0));
+document.getElementById('reps').addEventListener('input', () => {
+  document.getElementById('reps').classList.remove('carried');
+});
+
+function applyCarriedValues(weight, reps) {
+  const weightEl = document.getElementById('weight');
+  const repsEl = document.getElementById('reps');
+  weightEl.value = weight;
+  repsEl.value = reps;
+  weightEl.classList.add('carried');
+  repsEl.classList.add('carried');
+  plateCounts = countsFromArray(plateBreakdown(weight));
+  renderBar();
+}
+
+document.getElementById('logBtn').addEventListener('click', async () => {
+  const lift = document.getElementById('lift').value;
+  const weight = parseFloat(document.getElementById('weight').value);
+  const reps = getReps();
+  const when = document.getElementById('when').value;
+
+  if (!weight || !reps || !when) {
+    setSyncState('error', 'Enter weight, reps, and time');
+    setTimeout(() => setSyncState(entries.length ? 'synced' : '', ''), 1500);
+    return;
+  }
+
+  const entry = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2,7),
+    lift, weight, reps,
+    timestamp: new Date(when).toISOString()
+  };
+  entries.push(entry);
+  logEvent('info', `Logged set: ${lift} ${weight}×${reps}`);
+  renderLedger();
+  saveLocal();
+
+  document.getElementById('when').value = nowLocalISO();
+  applyCarriedValues(weight, reps);
+});
+
+function getLastEntry() {
+  if (!entries.length) return null;
+  return entries.reduce((a, b) => new Date(a.timestamp) > new Date(b.timestamp) ? a : b);
+}
+
+(function init() {
+  logEvent('info', `App init. localStorage available: ${typeof localStorage !== 'undefined'}, location: ${location.protocol}//${location.host}`);
+  loadLocal();
+  renderLedger();
+  const last = getLastEntry();
+  if (last) {
+    document.getElementById('lift').value = last.lift;
+    applyCarriedValues(last.weight, last.reps);
+    logEvent('info', `Carried forward last set: ${last.lift} ${last.weight}×${last.reps}`);
+  }
+})();
+</script>
+</body>
+</html>
