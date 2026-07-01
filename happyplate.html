@@ -286,6 +286,8 @@
     outline: none;
     border-color: var(--iron-red);
   }
+  input.carried { color: var(--chalk-dim); }
+  input.carried::placeholder { color: var(--chalk-dim); }
 
   .log-btn {
     width: 100%;
@@ -547,6 +549,7 @@ function buildPlateSelector() {
 function addPlate(size) {
   plateCounts[size]++;
   syncWeightField();
+  document.getElementById('weight').classList.remove('carried');
   renderBar();
 }
 
@@ -554,6 +557,7 @@ function removePlate(size) {
   if (plateCounts[size] > 0) {
     plateCounts[size]--;
     syncWeightField();
+    document.getElementById('weight').classList.remove('carried');
     renderBar();
   }
 }
@@ -561,6 +565,7 @@ function removePlate(size) {
 function clearBar() {
   PLATE_SIZES.forEach(s => plateCounts[s] = 0);
   syncWeightField();
+  document.getElementById('weight').classList.remove('carried');
   renderBar();
 }
 
@@ -601,6 +606,7 @@ function renderBar() {
 document.getElementById('weight').addEventListener('input', () => {
   const w = parseFloat(document.getElementById('weight').value);
   plateCounts = countsFromArray(plateBreakdown(w || BAR_WEIGHT));
+  document.getElementById('weight').classList.remove('carried');
   renderBar();
 });
 document.getElementById('clearBtn').addEventListener('click', clearBar);
@@ -695,15 +701,4 @@ function exportBackup() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `iron-log-backup-${new Date().toISOString().slice(0,10)}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    logEvent('ok', `Exported ${entries.length} entries as backup file`);
-  } catch (e) {
-    logEvent('error', 'Export failed', e);
-  }
-}
-async function shareBackup() {
-  con
+   
