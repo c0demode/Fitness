@@ -109,6 +109,82 @@
     background: #fff;
   }
 
+  .theme-actions {
+    display: flex;
+    gap: 8px;
+    padding: 10px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--line);
+  }
+  .theme-actions .clear-btn {
+    border: 1px solid var(--line);
+    padding: 6px 10px;
+  }
+  .theme-actions .clear-btn:hover { border-color: var(--chalk-dim); }
+  .theme-current-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border-bottom: 1px solid var(--line);
+  }
+  .theme-current-label {
+    font-size: 10px;
+    color: var(--chalk-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .palette-swatches { display: flex; gap: 4px; }
+  .swatch {
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    border: 1px solid rgba(128,128,128,0.25);
+    flex-shrink: 0;
+  }
+  .favorites-empty {
+    padding: 12px 10px;
+    font-size: 11px;
+    color: var(--chalk-dim);
+    font-style: italic;
+  }
+  .favorite-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--line);
+    gap: 8px;
+  }
+  .favorite-row:last-child { border-bottom: none; }
+  .favorite-info { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .favorite-name {
+    font-size: 11px;
+    color: var(--chalk);
+    font-family: 'IBM Plex Mono', monospace;
+    white-space: nowrap;
+  }
+  .favorite-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .favorite-apply {
+    background: none;
+    border: 1px solid var(--line);
+    color: var(--chalk-dim);
+    font-size: 10px;
+    text-transform: uppercase;
+    padding: 4px 8px;
+    cursor: pointer;
+  }
+  .favorite-apply:hover { color: var(--chalk); border-color: var(--chalk-dim); }
+  .favorite-del {
+    background: none;
+    border: none;
+    color: var(--chalk-dim);
+    font-size: 13px;
+    cursor: pointer;
+    padding: 0;
+  }
+  .favorite-del:hover { color: var(--iron-red); }
+
   .sync-status {
     margin-top: 6px;
     font-size: 11px;
@@ -373,6 +449,7 @@
     padding: 4px 0;
   }
   .clear-btn:hover { color: var(--iron-red); }
+  a.clear-btn { text-decoration: none; display: inline-block; }
   .tap-hint {
     font-size: 10px;
     color: var(--chalk-dim);
@@ -597,7 +674,7 @@
     cursor: pointer;
     margin-top: 4px;
   }
-  .log-btn:active { background: #a32f1a; }
+  .log-btn:active { filter: brightness(0.82); }
   .log-btn:disabled { background: var(--plate-blue); cursor: default; }
 
   .ledger-day {
@@ -666,6 +743,23 @@
       <span class="switch-slider"></span>
       <span class="switch-label">Girl Mode</span>
     </label>
+  </div>
+  <div class="backup-row">
+    <a class="clear-btn reports-link" href="report.html">📊 Reports</a>
+    <button class="clear-btn" id="themeToggleBtn">Theme</button>
+  </div>
+  <div class="debug-panel" id="themePanel" style="display:none;">
+    <div class="debug-panel-header"><span>Theme</span></div>
+    <div class="theme-actions">
+      <button type="button" class="clear-btn" id="randomizePaletteBtn">🎲 Randomize</button>
+      <button type="button" class="clear-btn" id="savePaletteBtn">☆ Save current</button>
+      <button type="button" class="clear-btn" id="resetPaletteBtn">Reset to default</button>
+    </div>
+    <div class="theme-current-row">
+      <span class="theme-current-label">Current</span>
+      <div class="palette-swatches" id="currentPalettePreview"></div>
+    </div>
+    <div id="favoritesList"></div>
   </div>
   <div class="sync-status">
     <span class="dot" id="syncDot"></span>
@@ -843,14 +937,184 @@ let plateCounts = { 45:0, 35:0, 25:0, 10:0, 5:0, 2.5:0 };
 let equipment = 'barbell';
 const DB_WEIGHTS = [5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100];
 
-// --- Girl Mode theme toggle ---
+// --- Theme system: Girl Mode, palette randomizer, favorites ---
+const THEME_VAR_MAP = { bg:'--bg', panel:'--panel', line:'--line', chalk:'--chalk', chalkDim:'--chalk-dim', accent:'--iron-red', accent2:'--plate-blue', ok:'--ok-green' };
+
+function hslStr(h, s, l) { return `hsl(${Math.round(((h % 360) + 360) % 360)}, ${Math.round(s)}%, ${Math.round(l)}%)`; }
+function randBetween(min, max) { return min + Math.random() * (max - min); }
+
+// Generates a color-theory-constrained palette: one base hue drives bg/panel/line/text,
+// an analogous-shifted hue drives the secondary accent, so results stay harmonious
+// instead of landing on jarring random RGB combinations.
+function generateTastefulPalette() {
+  const hue = randBetween(0, 360);
+  const dark = Math.random() < 0.7;
+  const shift = randBetween(25, 55) * (Math.random() < 0.5 ? 1 : -1);
+  const accent2Hue = hue + shift;
+  if (dark) {
+    return {
+      bg: hslStr(hue, randBetween(10,20), randBetween(8,12)),
+      panel: hslStr(hue, randBetween(10,18), randBetween(12,17)),
+      line: hslStr(hue, randBetween(12,20), randBetween(22,29)),
+      chalk: hslStr(hue, randBetween(6,16), randBetween(91,96)),
+      chalkDim: hslStr(hue, randBetween(8,16), randBetween(55,65)),
+      accent: hslStr(hue, randBetween(55,75), randBetween(48,58)),
+      accent2: hslStr(accent2Hue, randBetween(30,50), randBetween(45,62)),
+      ok: hslStr(randBetween(135,155), randBetween(35,50), randBetween(42,52))
+    };
+  }
+  return {
+    bg: hslStr(hue, randBetween(35,60), randBetween(96,98)),
+    panel: hslStr(hue, randBetween(15,35), 100),
+    line: hslStr(hue, randBetween(30,50), randBetween(85,90)),
+    chalk: hslStr(hue, randBetween(20,35), randBetween(20,30)),
+    chalkDim: hslStr(hue, randBetween(15,30), randBetween(48,58)),
+    accent: hslStr(hue, randBetween(55,75), randBetween(45,58)),
+    accent2: hslStr(accent2Hue, randBetween(45,65), randBetween(62,76)),
+    ok: hslStr(randBetween(135,155), randBetween(35,50), randBetween(38,48))
+  };
+}
+
+function applyCustomVars(vars) {
+  Object.keys(THEME_VAR_MAP).forEach(k => {
+    if (vars[k]) document.body.style.setProperty(THEME_VAR_MAP[k], vars[k]);
+  });
+}
+function clearCustomVars() {
+  Object.values(THEME_VAR_MAP).forEach(v => document.body.style.removeProperty(v));
+}
+function readCurrentVars() {
+  const cs = getComputedStyle(document.body);
+  const out = {};
+  Object.keys(THEME_VAR_MAP).forEach(k => { out[k] = cs.getPropertyValue(THEME_VAR_MAP[k]).trim(); });
+  return out;
+}
+function setThemeMode(mode) { try { localStorage.setItem('theme_mode', mode); } catch (e) {} }
+
 function setGirlMode(on) {
   document.body.classList.toggle('girl-mode', on);
   document.getElementById('girlModeToggle').checked = on;
   try { localStorage.setItem('girl_mode', on ? '1' : '0'); } catch (e) {}
 }
-document.getElementById('girlModeToggle').addEventListener('change', (e) => setGirlMode(e.target.checked));
-try { setGirlMode(localStorage.getItem('girl_mode') === '1'); } catch (e) {}
+document.getElementById('girlModeToggle').addEventListener('change', (e) => {
+  setGirlMode(e.target.checked);
+  clearCustomVars();
+  try { localStorage.removeItem('theme_custom_vars'); } catch (err) {}
+  setThemeMode(e.target.checked ? 'girl' : 'default');
+  renderPalettePreview();
+});
+
+function randomizePalette() {
+  const palette = generateTastefulPalette();
+  setGirlMode(false);
+  applyCustomVars(palette);
+  try { localStorage.setItem('theme_custom_vars', JSON.stringify(palette)); } catch (e) {}
+  setThemeMode('custom');
+  renderPalettePreview();
+  logEvent('ok', 'Randomized theme palette');
+}
+document.getElementById('randomizePaletteBtn').addEventListener('click', randomizePalette);
+
+function resetPalette() {
+  clearCustomVars();
+  setGirlMode(false);
+  try { localStorage.removeItem('theme_custom_vars'); } catch (e) {}
+  setThemeMode('default');
+  renderPalettePreview();
+  logEvent('ok', 'Reset to default theme');
+}
+document.getElementById('resetPaletteBtn').addEventListener('click', resetPalette);
+
+function getSavedPalettes() {
+  try { return JSON.parse(localStorage.getItem('saved_palettes') || '[]'); } catch (e) { return []; }
+}
+function setSavedPalettes(list) { try { localStorage.setItem('saved_palettes', JSON.stringify(list)); } catch (e) {} }
+
+function saveCurrentPalette() {
+  const vars = readCurrentVars();
+  const list = getSavedPalettes();
+  const name = `Palette ${list.length + 1}`;
+  list.push({ id: Date.now().toString(36), name, vars });
+  setSavedPalettes(list);
+  renderFavorites();
+  logEvent('ok', `Saved palette "${name}" to favorites`);
+}
+document.getElementById('savePaletteBtn').addEventListener('click', saveCurrentPalette);
+
+function applyFavorite(fav) {
+  setGirlMode(false);
+  applyCustomVars(fav.vars);
+  try { localStorage.setItem('theme_custom_vars', JSON.stringify(fav.vars)); } catch (e) {}
+  setThemeMode('custom');
+  renderPalettePreview();
+  logEvent('ok', `Applied favorite palette "${fav.name}"`);
+}
+function deleteFavorite(id) {
+  setSavedPalettes(getSavedPalettes().filter(f => f.id !== id));
+  renderFavorites();
+}
+
+function renderFavorites() {
+  const container = document.getElementById('favoritesList');
+  if (!container) return;
+  const list = getSavedPalettes();
+  if (!list.length) {
+    container.innerHTML = '<div class="favorites-empty">No saved palettes yet — randomize one you like, then "Save current".</div>';
+    return;
+  }
+  container.innerHTML = '';
+  list.forEach(fav => {
+    const row = document.createElement('div');
+    row.className = 'favorite-row';
+    const swatches = ['bg','accent','accent2','ok'].map(k => `<span class="swatch" style="background:${fav.vars[k]}"></span>`).join('');
+    row.innerHTML = `
+      <div class="favorite-info">
+        <div class="palette-swatches">${swatches}</div>
+        <span class="favorite-name">${fav.name}</span>
+      </div>
+      <div class="favorite-actions">
+        <button class="favorite-apply" data-id="${fav.id}">Apply</button>
+        <button class="favorite-del" data-id="${fav.id}">✕</button>
+      </div>
+    `;
+    container.appendChild(row);
+  });
+  container.querySelectorAll('.favorite-apply').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const fav = getSavedPalettes().find(f => f.id === btn.dataset.id);
+      if (fav) applyFavorite(fav);
+    });
+  });
+  container.querySelectorAll('.favorite-del').forEach(btn => {
+    btn.addEventListener('click', () => deleteFavorite(btn.dataset.id));
+  });
+}
+
+function renderPalettePreview() {
+  const preview = document.getElementById('currentPalettePreview');
+  if (!preview) return;
+  const vars = readCurrentVars();
+  preview.innerHTML = ['bg','accent','accent2','ok'].map(k => `<span class="swatch" style="background:${vars[k]}"></span>`).join('');
+}
+
+document.getElementById('themeToggleBtn').addEventListener('click', () => {
+  const panel = document.getElementById('themePanel');
+  const showing = panel.style.display !== 'none';
+  panel.style.display = showing ? 'none' : 'block';
+  if (!showing) { renderPalettePreview(); renderFavorites(); }
+});
+
+// Restore saved theme on load
+try {
+  const mode = localStorage.getItem('theme_mode') || (localStorage.getItem('girl_mode') === '1' ? 'girl' : 'default');
+  if (mode === 'girl') {
+    setGirlMode(true);
+  } else if (mode === 'custom') {
+    const saved = JSON.parse(localStorage.getItem('theme_custom_vars') || 'null');
+    if (saved) applyCustomVars(saved);
+  }
+} catch (e) {}
+renderPalettePreview();
 
 function setSyncState(state, text) {
   const dot = document.getElementById('syncDot');
